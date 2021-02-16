@@ -9,6 +9,9 @@ and when the paddle hit's the ball it returns to the centre of the canvas
 
 ## installation
 
-open your terminal and paste
-`git clone https://github.com/YassineEddyb/Pong-Game`
+open your terminal and paste 
+
+```
+git clone https://github.com/YassineEddyb/Pong-Game
+```
  
