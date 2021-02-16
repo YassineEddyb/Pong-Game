@@ -8,6 +8,9 @@ const status = document.querySelector(".start-game h1");
 const cw = cnv.width;
 const ch = cnv.height;
 
+ctx.fillStyle = "#000";
+  ctx.fillRect(0, 0, cw, ch);
+
 let vel = {
   x: 6,
   y: 6,
