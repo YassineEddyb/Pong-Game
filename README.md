@@ -1,17 +1,15 @@
 # Pong-Game
 
-this is a simple pong game in JavaScript,
-i used HTML5 canvas and ES6 classes,
-i also created a little Robot that palys the game without losing
-To create this robot i kept tracking the x axis of the ball when it's y axis is big then halp of the canvas 
-then i maked the paddle move depend on x axis of the ball
-and when the paddle hit's the ball it returns to the centre of the canvas
+This is a simple pong game in JavaScript,
+I used HTML5 canvas and ES6 classes,
+and also created a little Robot that plays the game without losing.
+To create this robot I kept track of the x axis of the ball when it's y axis is bigger then half of the canvas.
+then I maked the paddle move depending on x axis of the ball
+and when the paddle hits the ball it returns to the center of the canvas.
 
-## installation
+## Installation
 
-open your terminal and paste 
-
+Open your terminal and run :
 ```
 git clone https://github.com/YassineEddyb/Pong-Game
 ```
- 
