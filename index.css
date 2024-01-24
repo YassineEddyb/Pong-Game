@@ -1,5 +1,6 @@
-body {
+html, body {
     height: 100vh;
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -7,6 +8,13 @@ body {
 
 .container {
     height: 510px;
+    border: solid 1px #000;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+canvas {
+    margin: auto;
 }
 
 .controllers {
@@ -17,10 +25,11 @@ body {
     position: relative;
 }
 
-.controllers>i {
-    color: #fff;
+.controllers > i {
+    font-size: 2rem;
+    user-select: none;
+    cursor: pointer;
     display: inline-block;
-    background-color: #000;
     padding: 20px 30px;
     position: absolute;
 }

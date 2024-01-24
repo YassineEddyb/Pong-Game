@@ -8,50 +8,56 @@ const STATUS = document.querySelector(".start-game h1");
 const CANVAS_W = CANVAS.width;
 const CANVAS_H = CANVAS.height;
 
-CTX.fillStyle = "#000";
-CTX.fillRect(0, 0, CANVAS_W, CANVAS_H);
-
 let vel = {
-    x: 6,
-    y: 6,
+    x: 3,
+    y: 3
 };
 
+let requestId = 0;
 let dir;
 let leftDir, rightDir;
 let Enemies = [];
 
-class Ball {
-    constructor(x, y, raduis) {
+CTX.fillStyle = "#000";
+CTX.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+class Shape {
+    constructor (x, y) {
         this.x = x;
         this.y = y;
-        this.raduis = raduis;
+    }
+}
+
+class Ball extends Shape {
+    constructor(x, y, radius) {
+        super(x, y);
+        this.radius = radius;
     }
 
     draw() {
         CTX.beginPath();
-        CTX.arc(this.x, this.y, this.raduis, 0, 2 * Math.PI);
+        CTX.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
         CTX.fillStyle = "#fff";
         CTX.fill();
     }
 
     update() {
-        this.draw();
         this.x += vel.x;
         this.y -= vel.y;
-        if (this.x + this.raduis > CANVAS_W || this.x - this.raduis < 0) {
-            vel.x = -vel.x;
+
+        if (this.x + this.radius > CANVAS_W || this.x - this.radius < 0) {
+            vel.x *= -1;
         }
 
-        if (this.y - this.raduis < 0) {
-            vel.y = -vel.y;
+        if (this.y - this.radius < 0) {
+            vel.y *= -1;
         }
     }
 }
 
-class Pipe {
+class Player extends Shape {
     constructor(x, y, w, h) {
-        this.x = x;
-        this.y = y;
+        super(x, y);
         this.w = w;
         this.h = h;
     }
@@ -62,7 +68,6 @@ class Pipe {
     }
 
     update() {
-        this.draw();
         if (leftDir && this.x > 0) {
             this.x -= 7;
         }
@@ -72,15 +77,14 @@ class Pipe {
         }
 
         if (collision(this)) {
-            vel.y = -vel.y;
+            vel.y *= -1;
         }
     }
 }
 
-class Enemy {
+class Enemy extends Shape {
     constructor(x, y, w, h, color) {
-        this.x = x;
-        this.y = y;
+        super(x, y);
         this.w = w;
         this.h = h;
         this.color = color;
@@ -90,66 +94,82 @@ class Enemy {
         CTX.fillStyle = this.color;
         CTX.fillRect(this.x, this.y, this.w, this.h);
     }
-
-    update() {
-        this.draw();
-        if (collision(this)) {
-            vel.y = -vel.y;
-        }
-    }
 }
 
-const ball = new Ball(CANVAS_W / 2, 354, 8);
-const pipe = new Pipe(CANVAS_W / 2 - 30, 364, 60, 10);
+const BALL = new Ball(CANVAS_W / 2, 354, 8);
+const PLAYER = new Player(CANVAS_W / 2 - 30, 364, 60, 10);
 
-function animate() {
-    CTX.fillStyle = "#000";
-    CTX.fillRect(0, 0, CANVAS_W, CANVAS_H);
-    requestId = requestAnimationFrame(animate);
+let playerType = "player";
+
+function animationLoop() {
+
+    calculate();
+
+    draw();
+
+    requestId = requestAnimationFrame(animationLoop);
+}
+
+function calculate() {
 
     Enemies.forEach((enemy, index) => {
         if (collision(enemy)) {
-            setTimeout(() => {
-                switch (enemy.color) {
-                    case "#fff":
-                        enemy.color = "blue";
-                        break;
-                    case "blue":
-                        enemy.color = "red";
-                        break;
-                    case "red":
-                        Enemies.splice(index, 1);
-                }
-            }, 0);
+
+            vel.x *= -1;
+            vel.y *= -1;
+
+            switch (enemy.color) {
+                case "#fff":
+                    enemy.color = "blue";
+                    break;
+                case "blue":
+                    enemy.color = "red";
+                    break;
+                case "red":
+                    Enemies.splice(index, 1);
+                    break;
+                default:
+                    enemy.color = "red";
+            }
         }
-        enemy.update();
     });
 
-    if (ball.y > CANVAS_H || Enemies.length < 1) {
+    if (BALL.y > CANVAS_H || Enemies.length < 1) {
         cancelAnimationFrame(requestId);
+
         START_GAME.style.display = "block";
-        if (ball.y > CANVAS_H) {
-            status.innerText = "You Lose.";
+        if (BALL.y > CANVAS_H) {
+            STATUS.innerText = "You Lose.";
         } else {
-            status.innerText = "You Win!";
+            STATUS.innerText = "You Win!";
         }
     }
 
-    if (player == "bot") {
+    if (playerType == "bot") {
         bot();
     }
 
-    // boot track posistion of ball and move pipe
+    BALL.update();
+    PLAYER.update();
+}
 
-    ball.update();
-    pipe.update();
+function draw() {
+    
+    CTX.fillStyle = "#000";
+    CTX.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    Enemies.forEach((enemy) => enemy.draw());
+
+    BALL.draw();
+    PLAYER.draw();
+
 }
 
 function collision(rect) {
-    distX = Math.abs(ball.x - rect.x - rect.w / 2);
-    distY = Math.abs(ball.y - rect.y - rect.h / 2);
+    distX = Math.abs(BALL.x - rect.x - rect.w / 2);
+    distY = Math.abs(BALL.y - rect.y - rect.h / 2);
 
-    if (distX > rect.w / 2 + ball.raduis || distY > rect.h / 2 + ball.raduis) {
+    if (distX > rect.w / 2 + BALL.radius || distY > rect.h / 2 + BALL.radius) {
         return false;
     }
 
@@ -160,11 +180,10 @@ function collision(rect) {
     const dx = distX - rect.w / 2;
     const dy = distY - rect.h / 2;
 
-    return dx * dx + dy * dy <= ball.raduis * ball.raduis;
+    return dx * dx + dy * dy <= BALL.radius * BALL.radius;
 }
 
 function createEnemies() {
-    Enemies = [];
     for (let y = 0; y < 5; y++) {
         for (let x = 0; x < 6; x++) {
             Enemies.push(new Enemy(x * 60 + 15, y * 25 + 15, 50, 15, "#fff"));
@@ -173,38 +192,24 @@ function createEnemies() {
 }
 
 function bot() {
-    if (ball.y >= 150 && vel.y < 0) {
-        if (pipe.x + 30 - ball.x < -7 && pipe.x + pipe.w < CANVAS_W) {
-            pipe.x += 7;
+    if (BALL.y >= 150 && vel.y < 0) {
+        if (PLAYER.x + 30 - BALL.x < -7 && PLAYER.x + PLAYER.w < CANVAS_W) {
+            PLAYER.x += 7;
         }
-        if (pipe.x + 30 - ball.x > 7 && pipe.x > 0) {
-            pipe.x -= 7;
+        if (PLAYER.x + 30 - BALL.x > 7 && PLAYER.x > 0) {
+            PLAYER.x -= 7;
         }
     }
 
     if (vel.y > 0) {
-        if (pipe.x + 30 > CANVAS_W / 2) {
-            pipe.x -= 5;
+        if (PLAYER.x + 30 > CANVAS_W / 2) {
+            PLAYER.x -= 5;
         }
-        if (pipe.x + 30 < CANVAS_W / 2) {
-            pipe.x += 5;
+        if (PLAYER.x + 30 < CANVAS_W / 2) {
+            PLAYER.x += 5;
         }
     }
 }
-
-START_GAME.addEventListener("click", (e) => {
-    player = (e.target.id == "bot" ? "bot" : "player");
-
-    START_GAME.style.display = "none";
-
-    ball.x = CANVAS_W / 2;
-    ball.y = 354;
-    pipe.x = CANVAS_W / 2 - 30;
-    pipe.y = 364;
-
-    createEnemies();
-    animate();
-});
 
 function addListenerMulti(element, eventNames, listener) {
     eventNames.split(" ").forEach((event) => {
@@ -213,6 +218,8 @@ function addListenerMulti(element, eventNames, listener) {
 }
 
 addListenerMulti(document, "touchstart mousedown keydown", (e) => {
+    if (playerType !== "player") return;
+    
     if (e.target == LEFT || e.keyCode == "37") {
         leftDir = true;
     } else if (e.target == RIGHT || e.keyCode == "39") {
@@ -224,4 +231,16 @@ addListenerMulti(document, "touchend mouseup keyup", () => {
     leftDir = rightDir = false;
 });
 
-createEnemies();
+START_GAME.addEventListener("click", (e) => {
+    playerType = (e.target.id == "bot" ? "bot" : "player");
+
+    START_GAME.style.display = "none";
+
+    BALL.x = CANVAS_W / 2;
+    BALL.y = 354;
+    PLAYER.x = CANVAS_W / 2 - 30;
+    PLAYER.y = 364;
+
+    createEnemies();
+    animationLoop();
+});
